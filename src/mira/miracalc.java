@@ -28,7 +28,6 @@ import mira.utils.Project;
  * @author Andres Colubri
  */
 
-
 public class miracalc {
   static public String inputFile = "config.mira";
   static public String outputFile = "network.csv";
@@ -110,8 +109,8 @@ public class miracalc {
             Variable vj = dataset.getVariable(col);
             DataSlice2D slice = dataset.getSlice(vi, vj, ranges);
             float score = row == col ? 1f : 0f;
-            if (slice.missing < 0.2f) {
-              score = Similarity.calculate(slice, 0.05f, project);
+            if (slice.missing < project.missingThreshold()) {
+              score = Similarity.calculate(slice, project.pvalue(), project);
             }
             scores[row][col] = scores[col][row] = score;     
           }
@@ -180,98 +179,7 @@ public class miracalc {
   public static void main(String args[]) {
     init(args);
     run();
-  }
-  
-//  protected ThreadPoolExecutor scorematPool;
-//
-//  public void calculateScoreMatrix() {
-//  if (!sorted()) return;
-//
-//  cancelMatrixCalculation();    
-//
-//  int proc = Runtime.getRuntime().availableProcessors();
-//  scorematPool = (ThreadPoolExecutor)Executors.newFixedThreadPool(PApplet.min(1, proc - 1));
-//
-//  int size = 0;
-//  for (int i = 0; i < columns.size(); i++) {
-//  if (0 < scores.get(i)) size++;
-//  else break;
-//  }
-//  if (!sortVar.column) size++; 
-//  scoreMatrix = new float[size][size];
-//  for (int i = 0; i < size; i++) {
-//  Arrays.fill(scoreMatrix[i], -1);  
-//  }
-//
-//  size = scoreMatrix.length;
-//  for (int i = 0; i < size; i++) {
-//  final int col = i;
-//  for (int j = i + 1; j < size; j++) {        
-//    final int row = j;
-//    scorematPool.execute(new Runnable() {
-//      public void run() {
-//        Variable vx = getScoreMatrixCol(col);            
-//        Variable vy = getScoreMatrixRow(row);
-//        DataSlice2D slice = getSlice(vx, vy, sortRanges);
-//        float score = 0f;
-//        if (slice.missing < sortMissingThreshold) {
-//          score = Similarity.calculate(slice, sortPValue, project);
-//        }            
-//        scoreMatrix[col][row] = scoreMatrix[row][col] = score;
-//      }
-//    });        
-//  }      
-//  }
-//  scorematPool.shutdown();
-//  }
-//
-//  public float matrixProgress() { 
-//  if (scorematPool != null && !scorematPool.isTerminated()) {
-//  return (float)scorematPool.getCompletedTaskCount() / (scorematPool.getTaskCount());
-//  } else {
-//  return 1;
-//  }
-//  } 
-//
-//  public boolean matrixCompleted() {
-//  return scorematPool != null && scorematPool.isTerminated();
-//  }
-//
-//  public void cancelMatrixCalculation() {
-//  if (scorematPool != null && !scorematPool.isTerminated()) {
-//  Log.message("Suspending score matrix calculation...");
-//  scorematPool.shutdownNow();
-//  while (!scorematPool.isTerminated()) {
-//    Thread.yield();
-//  }      
-//  Log.message("Done.");
-//  }
-//  }
-//
-//  public boolean calculatingMatrix() {
-//  return scorematPool != null && !scorematPool.isTerminated();
-//  }
-//
-//  public Variable getScoreMatrixRow(int i) {
-//  return getScoreMatrixCol(i);
-//  }
-//
-//  public Variable getScoreMatrixCol(int i) {
-//  if (sortVar.column) {
-//  return getColumn(i);
-//  } else {
-//  return i == 0 ? sortVar : getColumn(i + 1);
-//  }    
-//  } 
-//
-//  public int getScoreMatrixSize() {
-//  return scoreMatrix.length;    
-//  }
-//    
-//  public float getScore(int i, int j) {
-//  return scoreMatrix[i][j];
-//  }
-  
+  }  
 }
 
 
