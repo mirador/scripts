@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import mira.data.DataRanges;
 import mira.data.DataSet;
@@ -35,13 +37,14 @@ public class miracalc {
   static Project project;
   static DataSet dataset;
   static DataRanges ranges;
+  static float[][] scores;
   
   public static void init(String args[]) {
     Log.init();
     
     // Load preferences
     try {
-      preferences = new Preferences(".mirador");
+      preferences = new Preferences();
     } catch (IOException e) {
       e.printStackTrace();
       System.exit(0);
@@ -91,19 +94,41 @@ public class miracalc {
     String[] output = new String[count + 1];
     
     System.out.println("Calculating correlation matrix...");
-    float[][] scores = new float[count][count];     
+    
+    ThreadPoolExecutor pool;
+    int proc = Runtime.getRuntime().availableProcessors();
+    pool = (ThreadPoolExecutor)Executors.newFixedThreadPool(proc);
+        
+    scores = new float[count][count];    
     for (int i = 0; i < count; i++) {
-      Variable vi = dataset.getVariable(i);
+      final int row = i;
       for (int j = i; j < count; j++) {
-        Variable vj = dataset.getVariable(j);
-        DataSlice2D slice = dataset.getSlice(vi, vj, ranges);
-        float score = i == j ? 1f : 0f;
-        if (slice.missing < 0.2f) {
-          score = Similarity.calculate(slice, 0.05f, project);
-        }
-        scores[i][j] = scores[j][i] = score;        
+        final int col = j;
+        pool.execute(new Runnable() { 
+          public void run() {
+            Variable vi = dataset.getVariable(row);
+            Variable vj = dataset.getVariable(col);
+            DataSlice2D slice = dataset.getSlice(vi, vj, ranges);
+            float score = row == col ? 1f : 0f;
+            if (slice.missing < 0.2f) {
+              score = Similarity.calculate(slice, 0.05f, project);
+            }
+            scores[row][col] = scores[col][row] = score;     
+          }
+        });
       }
     }
+    pool.shutdown();
+    
+    int perc0 = 0;
+    while (!pool.isTerminated()) {      
+      int perc = (int)(100 * (float)pool.getCompletedTaskCount() / (float)pool.getTaskCount());
+      if (perc0 + 5 <= perc) {
+        System.out.println("  " + perc + "% completed...");
+        perc0 = perc;
+      }
+      Thread.yield();      
+    }        
     System.out.println("Done.");
     
     String header = "";
@@ -157,95 +182,95 @@ public class miracalc {
     run();
   }
   
-//protected ThreadPoolExecutor scorematPool;
-
-//public void calculateScoreMatrix() {
-//if (!sorted()) return;
+//  protected ThreadPoolExecutor scorematPool;
 //
-//cancelMatrixCalculation();    
+//  public void calculateScoreMatrix() {
+//  if (!sorted()) return;
 //
-//int proc = Runtime.getRuntime().availableProcessors();
-//scorematPool = (ThreadPoolExecutor)Executors.newFixedThreadPool(PApplet.min(1, proc - 1));
+//  cancelMatrixCalculation();    
 //
-//int size = 0;
-//for (int i = 0; i < columns.size(); i++) {
-//if (0 < scores.get(i)) size++;
-//else break;
-//}
-//if (!sortVar.column) size++; 
-//scoreMatrix = new float[size][size];
-//for (int i = 0; i < size; i++) {
-//Arrays.fill(scoreMatrix[i], -1);  
-//}
+//  int proc = Runtime.getRuntime().availableProcessors();
+//  scorematPool = (ThreadPoolExecutor)Executors.newFixedThreadPool(PApplet.min(1, proc - 1));
 //
-//size = scoreMatrix.length;
-//for (int i = 0; i < size; i++) {
-//final int col = i;
-//for (int j = i + 1; j < size; j++) {        
-//  final int row = j;
-//  scorematPool.execute(new Runnable() {
-//    public void run() {
-//      Variable vx = getScoreMatrixCol(col);            
-//      Variable vy = getScoreMatrixRow(row);
-//      DataSlice2D slice = getSlice(vx, vy, sortRanges);
-//      float score = 0f;
-//      if (slice.missing < sortMissingThreshold) {
-//        score = Similarity.calculate(slice, sortPValue, project);
-//      }            
-//      scoreMatrix[col][row] = scoreMatrix[row][col] = score;
-//    }
-//  });        
-//}      
-//}
-//scorematPool.shutdown();
-//}
+//  int size = 0;
+//  for (int i = 0; i < columns.size(); i++) {
+//  if (0 < scores.get(i)) size++;
+//  else break;
+//  }
+//  if (!sortVar.column) size++; 
+//  scoreMatrix = new float[size][size];
+//  for (int i = 0; i < size; i++) {
+//  Arrays.fill(scoreMatrix[i], -1);  
+//  }
 //
-//public float matrixProgress() { 
-//if (scorematPool != null && !scorematPool.isTerminated()) {
-//return (float)scorematPool.getCompletedTaskCount() / (scorematPool.getTaskCount());
-//} else {
-//return 1;
-//}
-//} 
+//  size = scoreMatrix.length;
+//  for (int i = 0; i < size; i++) {
+//  final int col = i;
+//  for (int j = i + 1; j < size; j++) {        
+//    final int row = j;
+//    scorematPool.execute(new Runnable() {
+//      public void run() {
+//        Variable vx = getScoreMatrixCol(col);            
+//        Variable vy = getScoreMatrixRow(row);
+//        DataSlice2D slice = getSlice(vx, vy, sortRanges);
+//        float score = 0f;
+//        if (slice.missing < sortMissingThreshold) {
+//          score = Similarity.calculate(slice, sortPValue, project);
+//        }            
+//        scoreMatrix[col][row] = scoreMatrix[row][col] = score;
+//      }
+//    });        
+//  }      
+//  }
+//  scorematPool.shutdown();
+//  }
 //
-//public boolean matrixCompleted() {
-//return scorematPool != null && scorematPool.isTerminated();
-//}
+//  public float matrixProgress() { 
+//  if (scorematPool != null && !scorematPool.isTerminated()) {
+//  return (float)scorematPool.getCompletedTaskCount() / (scorematPool.getTaskCount());
+//  } else {
+//  return 1;
+//  }
+//  } 
 //
-//public void cancelMatrixCalculation() {
-//if (scorematPool != null && !scorematPool.isTerminated()) {
-//Log.message("Suspending score matrix calculation...");
-//scorematPool.shutdownNow();
-//while (!scorematPool.isTerminated()) {
-//  Thread.yield();
-//}      
-//Log.message("Done.");
-//}
-//}
+//  public boolean matrixCompleted() {
+//  return scorematPool != null && scorematPool.isTerminated();
+//  }
 //
-//public boolean calculatingMatrix() {
-//return scorematPool != null && !scorematPool.isTerminated();
-//}
-
-//public Variable getScoreMatrixRow(int i) {
-//return getScoreMatrixCol(i);
-//}
+//  public void cancelMatrixCalculation() {
+//  if (scorematPool != null && !scorematPool.isTerminated()) {
+//  Log.message("Suspending score matrix calculation...");
+//  scorematPool.shutdownNow();
+//  while (!scorematPool.isTerminated()) {
+//    Thread.yield();
+//  }      
+//  Log.message("Done.");
+//  }
+//  }
 //
-//public Variable getScoreMatrixCol(int i) {
-//if (sortVar.column) {
-//return getColumn(i);
-//} else {
-//return i == 0 ? sortVar : getColumn(i + 1);
-//}    
-//} 
+//  public boolean calculatingMatrix() {
+//  return scorematPool != null && !scorematPool.isTerminated();
+//  }
 //
-//public int getScoreMatrixSize() {
-//return scoreMatrix.length;    
-//}
-  
-//public float getScore(int i, int j) {
-//return scoreMatrix[i][j];
-//}
+//  public Variable getScoreMatrixRow(int i) {
+//  return getScoreMatrixCol(i);
+//  }
+//
+//  public Variable getScoreMatrixCol(int i) {
+//  if (sortVar.column) {
+//  return getColumn(i);
+//  } else {
+//  return i == 0 ? sortVar : getColumn(i + 1);
+//  }    
+//  } 
+//
+//  public int getScoreMatrixSize() {
+//  return scoreMatrix.length;    
+//  }
+//    
+//  public float getScore(int i, int j) {
+//  return scoreMatrix[i][j];
+//  }
   
 }
 
