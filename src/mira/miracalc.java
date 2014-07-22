@@ -25,7 +25,6 @@ import mira.utils.Project;
 /**
  * Simple command line application to run Mirador-related calculations.
  *
- * @author Andres Colubri
  */
 
 public class miracalc {
