@@ -1,6 +1,6 @@
 /* COPYRIGHT (C) 2014 Fathom Information Design. All Rights Reserved. */
 
-package mira;
+package miracalc;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -13,14 +13,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import mira.data.DataRanges;
-import mira.data.DataSet;
-import mira.data.DataSlice2D;
-import mira.data.Variable;
-import mira.shannon.Similarity;
-import mira.utils.Log;
-import mira.utils.Preferences;
-import mira.utils.Project;
+import miralib.data.DataRanges;
+import miralib.data.DataSet;
+import miralib.data.DataSlice2D;
+import miralib.data.Variable;
+import miralib.shannon.Similarity;
+import miralib.utils.Log;
+import miralib.utils.Preferences;
+import miralib.utils.Project;
 
 /**
  * Simple command line application to run Mirador-related calculations.
@@ -180,5 +180,3 @@ public class miracalc {
     run();
   }  
 }
-
-
