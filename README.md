@@ -15,5 +15,5 @@ In the app folder:
 How to run network script:
 
 ```bash
-java -jar jythonlib.jar network.py -in export/profile-config.mira
+ java -jar jythonlib.jar network.py -in diabetes/export/profile-config.mira -out diabetes/network/network.csv
 ```
