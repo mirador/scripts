@@ -1,3 +1,7 @@
+# Calculates the correlation matrix for all the variables in a Mirador project.
+# Example of use:
+# java -jar jythonlib.jar network.py -in diabetes/export/profile-config.mira -out diabetes/network/network.csv
+
 import sys, codecs
 from miralib.utils import Log
 from miralib.utils import Preferences
