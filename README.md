@@ -27,4 +27,9 @@ A disadvantage of Jython is Cython-based modules, like numpy, cannot be imported
 [PyJNIus](https://github.com/kivy/pyjnius) removes this limitation, as it is Cython based and calls 
 the Java code using JNI. However, it has an incompatibility with PApplet in Processing core, 
 which is used indirectly used by Miralib due to its dependency on Processing's Table class. Any call
-to a PApplet method will hang the script. 
+to a PApplet method will hang the script. The only requirement to run miralib scripts is to 
+install the PyJNIus package, for example using pip:
+
+```bash
+pip install pyjnius
+```
