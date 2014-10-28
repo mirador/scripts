@@ -1,8 +1,4 @@
-# Calculates the correlation matrix for all the variables in a Mirador project.
-# Example of use:
-# java -jar jythonlib.jar network.py -in diabetes/export/profile-config.mira -out diabetes/network/network.csv
-
-import sys, codecs
+import sys, os, codecs
 from miralib.utils import Log
 from miralib.utils import Preferences
 from miralib.utils import Project
@@ -14,30 +10,18 @@ from miralib.shannon import Similarity
 
 Log.init()
 
-inputFile = "./config.mira";
-outputFile = "./network.csv";
 
-len = len(sys.argv)
-if len == 2:
-    inputFile = sys.argv[1];
-else:
-    for i in range(1, len):    
-        if sys.argv[i] == "-in" and i + 1 < len:
-            inputFile = sys.argv[i + 1];
-        elif sys.argv[i] == "-out" and i + 1 < len:
-            outputFile = sys.argv[i + 1];
-        elif sys.argv[i] == "-miss" and i + 1 < len:
-            preferences.missingString = sys.argv[i + 1];
-        elif sys.argv[i] == "-mist" and i + 1 < len:
-            preferences.missingThreshold = Project.stringToMissing(sys.argv[i + 1]); 
-        elif sys.argv[i] == "-pval" and i + 1 < len:
-            preferences.pValue = Project.stringToPValue(sys.argv[i + 1]);
-        elif sys.argv[i] == "-algo" and i + 1 < len:
-            preferences.depTest = Similarity.stringToAlgorithm(sys.argv[i + 1]);
-        elif sys.argv[i] == "-surr" and i + 1 < len:
-            preferences.surrCount = int(sys.argv[i + 1]);
-        elif sys.argv[i] == "-chtr" and i + 1 < len:
-            preferences.threshold = float(sys.argv[i + 1]);
+inputFile = "./25-44/profile-config.mira";
+outputFile = "./25-44/network.csv";
+
+if 1 < len(sys.argv):
+    inputFile = sys.argv[1]
+    outputFile = os.path.join(os.path.split(inputFile)[0], 'network.csv')
+    if 2 < len(sys.argv):
+        outputFile = sys.argv[2]
+
+print "Input Mirador project file:",inputFile
+print "Output network file       :",outputFile
 
 preferences = Preferences()
 project = Project(inputFile, preferences)
