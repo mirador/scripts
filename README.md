@@ -12,8 +12,8 @@ using pip:
 pip install pyjnius
 ```
 
-Installation of PyJNIus on Windows is slightly more involved, please see this brief wiki
-entry for more details.
+Installation of PyJNIus on Windows is slightly more involved, please see this brief [wiki
+entry](https://github.com/mirador/scripts/wiki/Installing-PyJNIus-on-Windows) for more details.
 
 One PyJNIus is installet, then the miralib classes can be accessed from Python as follows:
 
