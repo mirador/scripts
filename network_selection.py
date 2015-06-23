@@ -49,6 +49,15 @@ project = Project(inputFile, preferences)
 ranges = DataRanges();
 dataset = DataSet(project);
 
+# Example of how to set ranges programmatically:
+age = dataset.getVariable("AGE")
+gender = dataset.getVariable("SEX")
+adults = age.createRange(10, 50, False)
+females = gender.createRange("Female")
+ranges.update(age, adults)
+ranges.update(gender, females)
+
+# Setting selection of columns to use in the calculations
 dataset.selectAllColumns()
 dataset.getGroup("GWAS").deselectAllColumns()
 dataset.getGroup("Treatment").deselectAllColumns()
