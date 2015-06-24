@@ -47,36 +47,42 @@ else:
 preferences = Preferences()
 project = Project(inputFile, preferences)
 ranges = DataRanges();
-dataset = DataSet(project);
+data = DataSet(project);
+
+print "Total number of data points:", data.getRowCount(ranges)
 
 # Example of how to set ranges programmatically:
-age = dataset.getVariable("AGE")
-gender = dataset.getVariable("SEX")
-adults = age.createRange(10, 50, False)
+age = data.getVariable("AGE")
+# Alias can also be used to search variables
+#age = data.getVariableByAlias("Age at admission")
+gender = data.getVariable("SEX")
+adults = age.createRange(10, 50)
 females = gender.createRange("Female")
 ranges.update(age, adults)
 ranges.update(gender, females)
 
-# Setting selection of columns to use in the calculations
-dataset.selectAllColumns()
-dataset.getGroup("GWAS").deselectAllColumns()
-dataset.getGroup("Treatment").deselectAllColumns()
-dataset.getTable("Maximum Values of Lab Results").deselectAllColumns()
-dataset.getTable("Last Day of Lab Results").deselectAllColumns()
-dataset.updateColumnSelection()
+print "Number of data points matching ranges:", data.getRowCount(ranges)
 
-count = dataset.getColumnCount()
+print "Total number of variables", data.getColumnCount()
+
+# Deselecting some columns (all variables are set as columns by default)
+data.removeColumns(data.getGroup("GWAS"))
+data.removeColumns(data.getGroup("Treatment"))
+data.removeColumns(data.getTable("Maximum Values of Lab Results"))
+data.removeColumns(data.getTable("Last Day of Lab Results"))
+
+count = data.getColumnCount()
 output = [""] * (count + 1)
-print "Number of selected variables",count
+print "Number of selected variables", count
 
 print "Calculating correlation matrix:"
 scores = [[0 for x in xrange(count)] for x in xrange(count)] 
 for i in range(0, count):
-    vi = dataset.getColumn(i)
+    vi = data.getColumn(i)
     print "  Variable: " + vi.getAlias() + " - " + str(i) + "/" + str(count) + "..."
     for j in range(i, count):
-        vj = dataset.getColumn(j)
-        slice = dataset.getSlice(vi, vj, ranges)
+        vj = data.getColumn(j)
+        slice = data.getSlice(vi, vj, ranges)
         score = 0
         if i != j and slice.missing < project.missingThreshold():
             score = Similarity.calculate(slice, project.pvalue(), project)
@@ -85,13 +91,13 @@ print "Done."
 
 header = "";
 for i in range(0, count):
-    vi = dataset.getColumn(i)
+    vi = data.getColumn(i)
     vname = vi.getAlias().replace('"', '\'');
     header = header + ";\"" + vname + "\"";
 output[0] = header;
 
 for i in range(0, count):
-    vi = dataset.getColumn(i)
+    vi = data.getColumn(i)
     vname = vi.getAlias().replace('"', '\'')
     line = "\"" + vname + "\""
     for j in range(0, count):
