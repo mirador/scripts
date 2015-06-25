@@ -1,4 +1,4 @@
-import sys, codecs, os
+import sys, codecs, os, time
 from scipy.stats import chi2_contingency
 import numpy as np
 
@@ -82,10 +82,14 @@ count = data.getColumnCount()
 output = [""] * (count + 1)
 print "Number of selected variables", count
 
+t0 = time.time()
 print "*************************************"
 outcome = data.getVariableByAlias("Outcome")
+total = 0
+diff = 0
 for i in range(0, count):
     vari = data.getColumn(i)
+#     if vari.getAlias() == outcome.getAlias():
     if True:
 #     if vari.categorical():
        print vari.getAlias()
@@ -100,6 +104,13 @@ for i in range(0, count):
                score = Similarity.calculate(slice, project.pvalue(), project)
                chi2_res = p < project.pvalue()
                simil_res = 0 < score
-               if chi2_res != simil_res: mark = "<----"
+               total += 1
+               if chi2_res != simil_res: 
+                   mark = "<----"
+                   diff += 1
                else: mark = ""
                print vari.getAlias(), varj.getAlias(), p, p < project.pvalue(), 0 < score, mark
+t1 = time.time()
+
+print "differences:", diff, "/" , total, "=",(100.0*diff/total), "%"
+print "time:",t1-t0
